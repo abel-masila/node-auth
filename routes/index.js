@@ -60,4 +60,13 @@ router.post("/register", (req, res, next) => {
     return next(err);
   }
 });
+//GET /Login
+router.get("/login", (req, res, next) => {
+  return res.render("login", { title: "Login" });
+});
+//POST /Login
+router.post("/login", (req, res, next) => {
+  return res.send("Logged in");
+});
+
 module.exports = router;
