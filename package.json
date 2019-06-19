@@ -8,6 +8,7 @@
     "start": "nodemon ./app"
   },
   "dependencies": {
+    "bcrypt": "^3.0.6",
     "body-parser": "^1.13.3",
     "express": "^4.13.4",
     "mongoose": "^5.6.0",
