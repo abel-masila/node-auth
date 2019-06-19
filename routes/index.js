@@ -51,6 +51,7 @@ router.post("/register", (req, res, next) => {
       if (error) {
         return next(error);
       } else {
+        req.session.userId = user._id;
         return res.redirect("/profile");
       }
     });
@@ -66,7 +67,42 @@ router.get("/login", (req, res, next) => {
 });
 //POST /Login
 router.post("/login", (req, res, next) => {
-  return res.send("Logged in");
+  const { email, password } = req.body;
+  if (email && password) {
+    User.authenticate(email, password, (error, user) => {
+      if (error || !user) {
+        const error = new Error("Wrong email or password");
+        error.status = 401;
+        return next(error);
+      } else {
+        req.session.userId = user._id;
+        return res.redirect("/profile");
+      }
+    });
+  } else {
+    const err = new Error("Email and Password are required");
+    err.status = 401;
+    return next(err);
+  }
 });
 
+router.get("/profile", (req, res, next) => {
+  if (!req.session.userId) {
+    const error = new Error("You are not authorized to view this page");
+    error.status = 403;
+    return next(error);
+  }
+  User.findById(req.session.userId).exec(function(error, user) {
+    if (error) {
+      return next(error);
+    } else {
+      return res.render("profile", {
+        title: "Profile",
+        name: user.name,
+        favorite: user.favoriteBook
+      });
+    }
+  });
+  //return res.render("profile", { title: "Profile" });
+});
 module.exports = router;
