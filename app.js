@@ -1,26 +1,33 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const session = require("express-session");
+var express = require("express");
+var bodyParser = require("body-parser");
+var mongoose = require("mongoose");
+var session = require("express-session");
+var MongoStore = require("connect-mongo")(session);
+var app = express();
 
-const mongoose = require("mongoose");
+// mongodb connection
+mongoose.connect("mongodb://localhost:27017/bookworm");
+var db = mongoose.connection;
+// mongo error
+db.on("error", console.error.bind(console, "connection error:"));
 
-const app = express();
-
-//Use session for tracking
+// use sessions for tracking logins
 app.use(
   session({
-    secret: "nodejs",
+    secret: "treehouse loves you",
     resave: true,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new MongoStore({
+      mongooseConnection: db
+    })
   })
 );
 
-//Connect to MongoDb
-mongoose.connect("mongodb://localhost:27017/bookworm", {
-  useNewUrlParser: true
+// make user ID available in templates
+app.use(function(req, res, next) {
+  res.locals.currentUser = req.session.userId;
+  next();
 });
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "connection error:"));
 
 // parse incoming requests
 app.use(bodyParser.json());
@@ -34,12 +41,12 @@ app.set("view engine", "pug");
 app.set("views", __dirname + "/views");
 
 // include routes
-const routes = require("./routes/index");
+var routes = require("./routes/index");
 app.use("/", routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  const err = new Error("File Not Found");
+  var err = new Error("File Not Found");
   err.status = 404;
   next(err);
 });

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const User = require("./../models/user");
+const middleware = require("./../middleware");
 
 // GET /
 router.get("/", function(req, res, next) {
@@ -19,7 +20,7 @@ router.get("/contact", function(req, res, next) {
 });
 
 //GET /register
-router.get("/register", (req, res, next) => {
+router.get("/register", middleware.loggedOut, (req, res, next) => {
   return res.render("register", { title: "Sign Up" });
 });
 
@@ -62,7 +63,7 @@ router.post("/register", (req, res, next) => {
   }
 });
 //GET /Login
-router.get("/login", (req, res, next) => {
+router.get("/login", middleware.loggedOut, (req, res, next) => {
   return res.render("login", { title: "Login" });
 });
 //POST /Login
@@ -86,12 +87,7 @@ router.post("/login", (req, res, next) => {
   }
 });
 
-router.get("/profile", (req, res, next) => {
-  if (!req.session.userId) {
-    const error = new Error("You are not authorized to view this page");
-    error.status = 403;
-    return next(error);
-  }
+router.get("/profile", middleware.requiresLogin, (req, res, next) => {
   User.findById(req.session.userId).exec(function(error, user) {
     if (error) {
       return next(error);
@@ -104,5 +100,18 @@ router.get("/profile", (req, res, next) => {
     }
   });
   //return res.render("profile", { title: "Profile" });
+});
+// GET /logout
+router.get("/logout", function(req, res, next) {
+  if (req.session) {
+    // delete session object
+    req.session.destroy(function(err) {
+      if (err) {
+        return next(err);
+      } else {
+        return res.redirect("/");
+      }
+    });
+  }
 });
 module.exports = router;
