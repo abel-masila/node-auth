@@ -13,7 +13,7 @@
     "connect-mongo": "^3.0.0",
     "express": "^4.13.4",
     "express-session": "^1.16.2",
-    "mongoose": "^5.6.0",
+    "mongoose": "^5.7.5",
     "pug": "^2.0.0-beta2"
   },
   "license": "MIT"
